@@ -298,6 +298,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+# ── Package availability check ────────────────────────────────────────────────
+import importlib, sys
+
+missing = []
+if importlib.util.find_spec("google.generativeai") is None:
+    missing.append("`google-generativeai`")
+if importlib.util.find_spec("groq") is None:
+    missing.append("`groq`")
+
+if missing:
+    st.error(
+        f"⚠️ **Missing packages detected:** {', '.join(missing)}\n\n"
+        "Run the following command in your terminal, then restart the app:\n\n"
+        "```bash\npip install google-generativeai groq\n```"
+    )
+    st.stop()
+
 # ── Session state init ─────────────────────────────────────────────────────────
 for key in ["history", "prompt_text"]:
     if key not in st.session_state:
@@ -318,7 +335,7 @@ TEMPLATES = {
 def call_gemini(prompt: str, system_prompt: str, key: str, temp: float, max_tok: int) -> dict:
     start = time.time()
     try:
-        import google.generativeai as genai
+        import google.generativeai as genai  # installed via: pip install google-generativeai
 
         genai.configure(api_key=key.strip())
 
