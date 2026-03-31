@@ -16,17 +16,14 @@ st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
 
-  /* ── Root palette ── */
   :root {
     --bg-void:      #070710;
     --bg-glass:     rgba(255,255,255,0.04);
-    --bg-glass2:    rgba(255,255,255,0.07);
-    --border:       rgba(255,255,255,0.08);
+    --bg-input:     rgba(8, 8, 25, 0.95);
+    --border:       rgba(255,255,255,0.10);
     --border-hot:   rgba(139,92,246,0.45);
     --purple:       #8B5CF6;
     --purple-glow:  rgba(139,92,246,0.25);
-    --gemini:       #4285F4;
-    --llama:        #F97316;
     --text-primary: #F0EEF8;
     --text-muted:   #8B8BA8;
     --text-dim:     #4A4A6A;
@@ -34,7 +31,6 @@ st.markdown("""
     --sans:         'Syne', sans-serif;
   }
 
-  /* ── Global resets ── */
   html, body, [class*="css"] {
     font-family: var(--sans) !important;
     color: var(--text-primary) !important;
@@ -49,7 +45,7 @@ st.markdown("""
 
   /* ── Sidebar ── */
   [data-testid="stSidebar"] {
-    background: rgba(10,10,22,0.95) !important;
+    background: rgba(10,10,22,0.97) !important;
     border-right: 1px solid var(--border) !important;
     backdrop-filter: blur(20px);
   }
@@ -58,6 +54,33 @@ st.markdown("""
     background: var(--purple) !important;
   }
   [data-testid="stSidebarContent"] { padding-top: 1.5rem !important; }
+
+  /* ── FIX: All text inputs and textareas ── */
+  .stTextInput > div > div > input,
+  .stTextArea > div > div > textarea {
+    background: var(--bg-input) !important;
+    color: #F0EEF8 !important;
+    border: 1px solid rgba(255,255,255,0.18) !important;
+    border-radius: 10px !important;
+    font-family: var(--sans) !important;
+    font-size: 0.95rem !important;
+    caret-color: var(--purple) !important;
+  }
+  .stTextInput > div > div > input:focus,
+  .stTextArea > div > div > textarea:focus {
+    border-color: var(--purple) !important;
+    box-shadow: 0 0 0 3px var(--purple-glow) !important;
+    outline: none !important;
+  }
+  .stTextInput > div > div > input::placeholder,
+  .stTextArea > div > div > textarea::placeholder {
+    color: rgba(139,139,168,0.55) !important;
+  }
+  /* Password input eye icon area */
+  .stTextInput > div > div {
+    background: var(--bg-input) !important;
+    border-radius: 10px !important;
+  }
 
   /* ── Main title ── */
   .burnsmart-title {
@@ -80,17 +103,6 @@ st.markdown("""
     text-transform: uppercase;
     margin-bottom: 2.5rem;
   }
-
-  /* ── Glass card ── */
-  .glass-card {
-    background: var(--bg-glass);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.5rem;
-    backdrop-filter: blur(12px);
-    transition: border-color 0.3s ease;
-  }
-  .glass-card:hover { border-color: var(--border-hot); }
 
   /* ── Model header badges ── */
   .model-badge {
@@ -157,7 +169,7 @@ st.markdown("""
     justify-content: center;
   }
 
-  /* ── Stats caption ── */
+  /* ── Stats chips ── */
   .stats-row {
     display: flex;
     gap: 1rem;
@@ -226,19 +238,6 @@ st.markdown("""
     transform: translateY(-1px) !important;
   }
 
-  /* ── Text inputs / textarea ── */
-  .stTextInput input, .stTextArea textarea {
-    background: var(--bg-glass2) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    color: var(--text-primary) !important;
-    font-family: var(--sans) !important;
-  }
-  .stTextInput input:focus, .stTextArea textarea:focus {
-    border-color: var(--purple) !important;
-    box-shadow: 0 0 0 3px var(--purple-glow) !important;
-  }
-
   /* ── Expander ── */
   [data-testid="stExpander"] {
     background: var(--bg-glass) !important;
@@ -255,7 +254,7 @@ st.markdown("""
     padding: 0.75rem 1rem !important;
   }
 
-  /* ── Sidebar label ── */
+  /* ── Sidebar labels ── */
   .sidebar-section-label {
     font-family: var(--mono);
     font-size: 0.62rem;
@@ -264,9 +263,6 @@ st.markdown("""
     color: var(--text-dim);
     margin: 1.2rem 0 0.4rem;
   }
-
-  /* ── Template buttons ── */
-  .template-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 
   /* ── History item ── */
   .history-item {
@@ -290,7 +286,7 @@ st.markdown("""
     letter-spacing: 0.06em;
   }
 
-  /* ── Spinner override ── */
+  /* ── Spinner ── */
   .stSpinner > div { border-top-color: var(--purple) !important; }
 
   /* ── Scrollbar ── */
@@ -303,61 +299,63 @@ st.markdown("""
 
 
 # ── Session state init ─────────────────────────────────────────────────────────
-if "history" not in st.session_state:
-    st.session_state.history = []
-if "prompt_text" not in st.session_state:
-    st.session_state.prompt_text = ""
+for key in ["history", "prompt_text"]:
+    if key not in st.session_state:
+        st.session_state[key] = [] if key == "history" else ""
 
 
 # ── Prompt templates ───────────────────────────────────────────────────────────
 TEMPLATES = {
-    "⚡ Code Explain": "Explain the following concept with a clear, concise example in Python: {topic}. Walk me through the code line-by-line.",
-    "✍️ Writing Help": "Help me write a compelling introduction paragraph for an essay about {topic}. Make it hook the reader immediately.",
-    "📊 Analysis": "Analyze the key trends, opportunities, and risks related to {topic}. Structure your response with clear sections.",
-    "🧠 Brainstorm": "Generate 10 creative and unconventional ideas related to {topic}. Push beyond the obvious. Be bold.",
-    "🔬 Research": "Give me a deep-dive overview of {topic}, covering its history, current state, and future outlook. Cite key facts.",
+    "⚡ Code Explain":  "Explain the following concept with a clear, concise example in Python: {topic}. Walk me through the code line-by-line.",
+    "✍️ Writing Help":  "Help me write a compelling introduction paragraph for an essay about {topic}. Make it hook the reader immediately.",
+    "📊 Analysis":      "Analyze the key trends, opportunities, and risks related to {topic}. Structure your response with clear sections.",
+    "🧠 Brainstorm":    "Generate 10 creative and unconventional ideas related to {topic}. Push beyond the obvious. Be bold.",
+    "🔬 Research":      "Give me a deep-dive overview of {topic}, covering its history, current state, and future outlook. Cite key facts.",
 }
 
 
-# ── API call functions ─────────────────────────────────────────────────────────
+# ── FIX: API call — Gemini 2.5 Flash via google-generativeai ──────────────────
 def call_gemini(prompt: str, system_prompt: str, key: str, temp: float, max_tok: int) -> dict:
     start = time.time()
     try:
-        from google import genai
-        from google.genai import types
+        import google.generativeai as genai
 
-        client = genai.Client(api_key=key)
-        full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt.strip() else prompt
+        genai.configure(api_key=key.strip())
 
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=full_prompt,
-            config=types.GenerateContentConfig(
+        model = genai.GenerativeModel(
+            model_name="gemini-2.5-flash-preview-04-17",
+            system_instruction=system_prompt.strip() if system_prompt.strip() else None,
+        )
+
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
                 temperature=temp,
                 max_output_tokens=max_tok,
             ),
         )
         elapsed = time.time() - start
         return {
-            "ok": True,
-            "text": response.text,
-            "time": elapsed,
-            "tokens_in": response.usage_metadata.prompt_token_count,
-            "tokens_out": response.usage_metadata.candidates_token_count,
+            "ok":         True,
+            "text":       response.text,
+            "time":       elapsed,
+            "tokens_in":  response.usage_metadata.prompt_token_count  or 0,
+            "tokens_out": response.usage_metadata.candidates_token_count or 0,
         }
     except Exception as e:
         return {"ok": False, "error": str(e), "time": time.time() - start}
 
 
+# ── FIX: API call — Llama 4 Scout via Groq ────────────────────────────────────
 def call_llama(prompt: str, system_prompt: str, key: str, temp: float, max_tok: int) -> dict:
     start = time.time()
     try:
         from groq import Groq
 
-        client = Groq(api_key=key)
+        client   = Groq(api_key=key.strip())
         messages = []
         if system_prompt.strip():
-            messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "system", "content": system_prompt.strip()})
         messages.append({"role": "user", "content": prompt})
 
         response = client.chat.completions.create(
@@ -368,10 +366,10 @@ def call_llama(prompt: str, system_prompt: str, key: str, temp: float, max_tok: 
         )
         elapsed = time.time() - start
         return {
-            "ok": True,
-            "text": response.choices[0].message.content,
-            "time": elapsed,
-            "tokens_in": response.usage.prompt_tokens,
+            "ok":         True,
+            "text":       response.choices[0].message.content,
+            "time":       elapsed,
+            "tokens_in":  response.usage.prompt_tokens,
             "tokens_out": response.usage.completion_tokens,
         }
     except Exception as e:
@@ -388,13 +386,42 @@ with st.sidebar:
     </div>
     <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:#4A4A6A;
          letter-spacing:0.14em;text-transform:uppercase;margin-bottom:1.5rem;">
-         Model Arena · v1.0
+         Model Arena · v2.0
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="sidebar-section-label">🔑 API Keys</div>', unsafe_allow_html=True)
-    gemini_key = st.text_input("Gemini API Key", type="password", placeholder="AIza...", key="gemini_key")
-    groq_key   = st.text_input("Groq API Key",   type="password", placeholder="gsk_...",  key="groq_key")
+
+    # FIX: Use session_state explicitly so keys persist across reruns
+    gemini_key = st.text_input(
+        "Gemini API Key", type="password", placeholder="AIza...",
+        value=st.session_state.get("_gemini_key", ""),
+        help="Get free key → aistudio.google.com/apikey"
+    )
+    groq_key = st.text_input(
+        "Groq API Key", type="password", placeholder="gsk_...",
+        value=st.session_state.get("_groq_key", ""),
+        help="Get free key → console.groq.com/keys"
+    )
+
+    # Persist keys in session state
+    if gemini_key:
+        st.session_state["_gemini_key"] = gemini_key
+    if groq_key:
+        st.session_state["_groq_key"] = groq_key
+
+    # Show key status
+    col_k1, col_k2 = st.columns(2)
+    col_k1.markdown(
+        f"<div style='font-family:monospace;font-size:0.65rem;text-align:center;"
+        f"color:{'#4ADE80' if gemini_key else '#F87171'};'>🔵 Gemini {'✓' if gemini_key else '✗'}</div>",
+        unsafe_allow_html=True
+    )
+    col_k2.markdown(
+        f"<div style='font-family:monospace;font-size:0.65rem;text-align:center;"
+        f"color:{'#4ADE80' if groq_key else '#F87171'};'>🟠 Groq {'✓' if groq_key else '✗'}</div>",
+        unsafe_allow_html=True
+    )
 
     st.markdown('<div class="sidebar-section-label">⚙️ Generation Settings</div>', unsafe_allow_html=True)
     temperature = st.slider("Temperature", 0.0, 1.0, 0.7, 0.05, help="Higher = more creative")
@@ -402,11 +429,11 @@ with st.sidebar:
 
     st.markdown('<div class="sidebar-section-label">ℹ️ Get Free Keys</div>', unsafe_allow_html=True)
     st.markdown("""
-    <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#4A4A6A;line-height:1.8;">
+    <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#6A6A8A;line-height:2;">
     🔵 <a href="https://aistudio.google.com/apikey" target="_blank"
-         style="color:#4285F4;text-decoration:none;">Gemini → aistudio.google.com</a><br>
+         style="color:#4285F4;text-decoration:none;">aistudio.google.com</a><br>
     🟠 <a href="https://console.groq.com/keys" target="_blank"
-         style="color:#F97316;text-decoration:none;">Groq → console.groq.com</a>
+         style="color:#F97316;text-decoration:none;">console.groq.com</a>
     </div>
     """, unsafe_allow_html=True)
 
@@ -414,35 +441,39 @@ with st.sidebar:
 # ── Main area ──────────────────────────────────────────────────────────────────
 st.markdown('<div class="burnsmart-title">🔍 BurnSmartAI</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="burnsmart-sub">Simultaneous AI model comparison · Gemini vs Llama 4 Scout</div>',
+    '<div class="burnsmart-sub">Simultaneous AI model comparison · Gemini 2.5 Flash vs Llama 4 Scout</div>',
     unsafe_allow_html=True,
 )
 
 # System prompt
 with st.expander("🧬 System Prompt (optional)"):
     system_prompt = st.text_area(
-        "System instructions",
+        "system_instructions",
         placeholder="You are a helpful, concise assistant. Answer clearly and thoroughly.",
         height=90,
         label_visibility="collapsed",
+        key="system_prompt_input",
     )
 
 # Prompt templates
 with st.expander("⚡ Prompt Templates"):
-    st.markdown(
-        '<div style="font-family:\'Space Mono\',monospace;font-size:0.65rem;color:#4A4A6A;'
-        'margin-bottom:0.6rem;">Click to populate prompt area</div>',
-        unsafe_allow_html=True,
-    )
+    st.caption("Click any template to populate the prompt area.")
     cols_t = st.columns(len(TEMPLATES))
     for i, (label, tpl) in enumerate(TEMPLATES.items()):
         with cols_t[i]:
             if st.button(label, use_container_width=True):
                 st.session_state.prompt_text = tpl
+                st.rerun()
 
-# Prompt input
+# Prompt input — FIX: explicit dark background + light text via CSS above
+st.markdown(
+    "<p style='font-family:\"Space Mono\",monospace;font-size:0.68rem;"
+    "color:#4A4A6A;letter-spacing:0.1em;text-transform:uppercase;"
+    "margin-bottom:4px;'>Your Prompt</p>",
+    unsafe_allow_html=True,
+)
 prompt = st.text_area(
-    "Your Prompt",
+    "prompt_label",
     value=st.session_state.prompt_text,
     placeholder="Ask anything — compare how each model thinks, writes, and reasons...",
     height=130,
@@ -450,24 +481,43 @@ prompt = st.text_area(
     key="main_prompt",
 )
 
-compare_btn = st.button("⚡ Compare Models", type="primary", use_container_width=True)
+# Validate before showing button
+keys_missing = not gemini_key and not groq_key
+if keys_missing:
+    st.warning("⚠️ Enter at least one API key in the sidebar to compare models.", icon="🔑")
+
+compare_btn = st.button(
+    "⚡ Compare Models",
+    type="primary",
+    use_container_width=True,
+    disabled=keys_missing,
+)
 
 st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
 
 # ── Results rendering helper ───────────────────────────────────────────────────
-def render_response_col(result: dict | None, model_name: str, badge_class: str, dot_class: str, placeholder_msg: str):
+def render_response_col(
+    result, model_name: str, badge_class: str, dot_class: str, placeholder_msg: str
+):
     st.markdown(
         f'<div class="model-badge {badge_class}">'
         f'<span class="badge-dot {dot_class}"></span>{model_name}</div>',
         unsafe_allow_html=True,
     )
     if result is None:
-        st.markdown(f'<div class="response-placeholder">{placeholder_msg}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="response-placeholder">{placeholder_msg}</div>',
+            unsafe_allow_html=True,
+        )
     elif not result["ok"]:
-        st.error(f"⚠️ {result['error']}")
+        st.error(f"⚠️ API Error: {result['error']}")
+        st.caption("Check your API key and try again.")
     else:
-        st.markdown(f'<div class="response-box">{result["text"]}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="response-box">{result["text"]}</div>',
+            unsafe_allow_html=True,
+        )
         words = len(result["text"].split())
         st.markdown(
             f'<div class="stats-row">'
@@ -484,34 +534,35 @@ def render_response_col(result: dict | None, model_name: str, badge_class: str, 
 results_gemini = None
 results_llama  = None
 
-if compare_btn and prompt.strip():
-    with st.spinner("Querying models in parallel…"):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
-            fut_gemini = ex.submit(
-                call_gemini, prompt, system_prompt if "system_prompt" in dir() else "",
-                gemini_key, temperature, max_tokens
-            ) if gemini_key else None
+if compare_btn:
+    if not prompt.strip():
+        st.warning("Please enter a prompt before comparing.")
+    else:
+        with st.spinner("Querying models in parallel…"):
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+                sys_p = st.session_state.get("system_prompt_input", "")
 
-            fut_llama = ex.submit(
-                call_llama, prompt, system_prompt if "system_prompt" in dir() else "",
-                groq_key, temperature, max_tokens
-            ) if groq_key else None
+                fut_gemini = (
+                    ex.submit(call_gemini, prompt, sys_p, gemini_key, temperature, max_tokens)
+                    if gemini_key else None
+                )
+                fut_llama = (
+                    ex.submit(call_llama, prompt, sys_p, groq_key, temperature, max_tokens)
+                    if groq_key else None
+                )
 
-            results_gemini = fut_gemini.result() if fut_gemini else None
-            results_llama  = fut_llama.result()  if fut_llama  else None
+                results_gemini = fut_gemini.result() if fut_gemini else None
+                results_llama  = fut_llama.result()  if fut_llama  else None
 
-    # Save to history
-    st.session_state.history.insert(0, {
-        "ts": datetime.now().strftime("%H:%M:%S"),
-        "prompt": prompt[:120] + ("…" if len(prompt) > 120 else ""),
-        "gemini_ok": results_gemini["ok"] if results_gemini else False,
-        "llama_ok":  results_llama["ok"]  if results_llama  else False,
-        "gemini_time": results_gemini.get("time", 0) if results_gemini else 0,
-        "llama_time":  results_llama.get("time", 0)  if results_llama  else 0,
-    })
-
-elif compare_btn:
-    st.warning("Please enter a prompt before comparing.")
+        # Save to history
+        st.session_state.history.insert(0, {
+            "ts":          datetime.now().strftime("%H:%M:%S"),
+            "prompt":      prompt[:120] + ("…" if len(prompt) > 120 else ""),
+            "gemini_ok":   results_gemini["ok"] if results_gemini else False,
+            "llama_ok":    results_llama["ok"]  if results_llama  else False,
+            "gemini_time": results_gemini.get("time", 0) if results_gemini else 0,
+            "llama_time":  results_llama.get("time", 0)  if results_llama  else 0,
+        })
 
 
 # ── Results columns ────────────────────────────────────────────────────────────
@@ -519,14 +570,18 @@ col_g, col_l = st.columns(2, gap="large")
 
 with col_g:
     render_response_col(
-        results_gemini, "Gemini 2.0 Flash", "badge-gemini", "dot-gemini",
-        "🔵 Add Gemini API key to enable" if not gemini_key else "⏳ Awaiting comparison…",
+        results_gemini,
+        "Gemini 2.5 Flash",
+        "badge-gemini", "dot-gemini",
+        "🔵 Add Gemini API key in sidebar to enable" if not gemini_key else "⏳ Awaiting comparison…",
     )
 
 with col_l:
     render_response_col(
-        results_llama, "Llama 4 Scout 17B", "badge-llama", "dot-llama",
-        "🟠 Add Groq API key to enable" if not groq_key else "⏳ Awaiting comparison…",
+        results_llama,
+        "Llama 4 Scout 17B",
+        "badge-llama", "dot-llama",
+        "🟠 Add Groq API key in sidebar to enable" if not groq_key else "⏳ Awaiting comparison…",
     )
 
 
@@ -540,30 +595,23 @@ if results_gemini and results_llama and results_gemini["ok"] and results_llama["
     )
 
     m1, m2, m3, m4, m5, m6 = st.columns(6)
-
-    faster = "Gemini" if results_gemini["time"] < results_llama["time"] else "Llama 4"
+    faster      = "Gemini" if results_gemini["time"] < results_llama["time"] else "Llama 4"
     speed_delta = abs(results_gemini["time"] - results_llama["time"])
 
-    with m1:
-        st.metric("⚡ Gemini Speed", f'{results_gemini["time"]:.2f}s',
-                  delta="faster" if faster == "Gemini" else f'+{speed_delta:.2f}s slower')
-    with m2:
-        st.metric("⚡ Llama Speed", f'{results_llama["time"]:.2f}s',
-                  delta="faster" if faster == "Llama 4" else f'+{speed_delta:.2f}s slower')
-    with m3:
-        st.metric("🔵 Gemini Tokens Out", results_gemini["tokens_out"])
-    with m4:
-        st.metric("🟠 Llama Tokens Out", results_llama["tokens_out"])
-    with m5:
-        st.metric("🔵 Gemini Words", len(results_gemini["text"].split()))
-    with m6:
-        st.metric("🟠 Llama Words", len(results_llama["text"].split()))
+    m1.metric("⚡ Gemini Speed",     f'{results_gemini["time"]:.2f}s',
+              delta="faster" if faster == "Gemini" else f'+{speed_delta:.2f}s')
+    m2.metric("⚡ Llama Speed",      f'{results_llama["time"]:.2f}s',
+              delta="faster" if faster == "Llama 4" else f'+{speed_delta:.2f}s')
+    m3.metric("🔵 Gemini Tokens",    results_gemini["tokens_out"])
+    m4.metric("🟠 Llama Tokens",     results_llama["tokens_out"])
+    m5.metric("🔵 Gemini Words",     len(results_gemini["text"].split()))
+    m6.metric("🟠 Llama Words",      len(results_llama["text"].split()))
 
 
 # ── Session history ────────────────────────────────────────────────────────────
 if st.session_state.history:
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
-    with st.expander(f"🕒 Session History ({len(st.session_state.history)} comparisons)"):
+    with st.expander(f"🕒 Session History  ({len(st.session_state.history)} comparisons)"):
         for item in st.session_state.history:
             g_badge = "✅" if item["gemini_ok"] else "❌"
             l_badge = "✅" if item["llama_ok"]  else "❌"
