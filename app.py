@@ -328,7 +328,7 @@ def call_gemini(key: str, prompt: str, system_prompt: str, temp: float, max_tok:
 
         t0 = time.time()
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-05-20",
+            model="gemini-2.0-flash",
             contents=full_prompt,
             config=types.GenerateContentConfig(
                 temperature=temp,
@@ -452,7 +452,7 @@ with st.sidebar:
     st.markdown('<div class="sidebar-section-title">ℹ️ About</div>', unsafe_allow_html=True)
     st.markdown("""
     <div style="font-size:0.75rem; color:#475569; line-height:1.6;">
-    Compare <strong style="color:#60a5fa;">Gemini 2.5 Flash</strong> vs 
+    Compare <strong style="color:#60a5fa;">Gemini 2.0 Flash</strong> vs 
     <strong style="color:#22D3EE;">Llama 4 Scout 17B</strong> side-by-side.<br><br>
     Both APIs have generous free tiers — no credit card needed.
     </div>
@@ -543,7 +543,7 @@ if compare_clicked:
                     </div>
                     """, unsafe_allow_html=True)
 
-        render_column(col1, results["gemini"], "Gemini 2.5 Flash", "badge-gemini", "#4285F4", "gemini-box", "✦")
+        render_column(col1, results["gemini"], "Gemini 2.0 Flash", "badge-gemini", "#4285F4", "gemini-box", "✦")
         render_column(col2, results["llama"],  "Llama 4 Scout 17B", "badge-llama",  "#22D3EE", "llama-box",  "◈")
 
         # ── Comparison Metrics ─────────────────────────────────────────────────
@@ -563,7 +563,7 @@ if compare_clicked:
             l_words = len(l["text"].split())
             more_words = "Gemini" if g_words > l_words else "Llama 4"
 
-            m1.metric("⏱ Gemini Speed", f"{g['elapsed']:.2f}s", delta=f"{'faster' if g['elapsed'] < l['elapsed'] else 'slower'} by {speed_delta:.2f}s")
+            m1.metric("⏱ Gemini 2.0 Speed", f"{g['elapsed']:.2f}s", delta=f"{'faster' if g['elapsed'] < l['elapsed'] else 'slower'} by {speed_delta:.2f}s")
             m2.metric("⏱ Llama 4 Speed", f"{l['elapsed']:.2f}s", delta=f"{'faster' if l['elapsed'] < g['elapsed'] else 'slower'} by {speed_delta:.2f}s")
             m3.metric("📤 Output Tokens", f"{g['tokens_out']:,} G  ·  {l['tokens_out']:,} L", delta=f"Δ {abs(g['tokens_out']-l['tokens_out'])}")
             m4.metric("📝 Word Count", f"{g_words:,} G  ·  {l_words:,} L", delta=f"{more_words} wrote more")
@@ -583,7 +583,7 @@ else:
     if not compare_clicked:
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown('<div class="model-badge badge-gemini">✦ Gemini 2.5 Flash</div>', unsafe_allow_html=True)
+            st.markdown('<div class="model-badge badge-gemini">✦ Gemini 2.0 Flash</div>', unsafe_allow_html=True)
             st.markdown('<div class="response-box placeholder-box">Response will appear here after comparing…</div>', unsafe_allow_html=True)
         with col2:
             st.markdown('<div class="model-badge badge-llama">◈ Llama 4 Scout 17B</div>', unsafe_allow_html=True)
