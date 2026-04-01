@@ -1,6 +1,0 @@
-# Deep Dive Research Engine — dependencies
-# Install with: pip install -r requirements.txt
-
-streamlit>=1.35.0          # Web UI framework
-google-genai>=1.5.0        # Gemini API (google-generativeai v2 SDK)
-groq>=0.9.0                # Groq API for Llama 4 Scout
