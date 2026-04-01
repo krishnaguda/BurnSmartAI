@@ -1,15 +1,12 @@
 """
-╔══════════════════════════════════════════════════════════╗
-║   BurnSmartAI — Side-by-Side AI Model Comparison        ║
-║   Gemini 2.0 Flash  ×  Llama 4 Scout 17B (Groq)        ║
-╚══════════════════════════════════════════════════════════╝
+BurnSmartAI — Side-by-Side AI Model Comparison
+Gemini 2.0 Flash  x  Llama 4 Scout 17B (Groq)
 """
 
 import streamlit as st
 import time
 from datetime import datetime
 
-# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="BurnSmartAI",
     page_icon="🔍",
@@ -17,585 +14,308 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── CSS ───────────────────────────────────────────────────────────────────────
 def inject_css():
     st.markdown("""
     <style>
-    /* ── Base & background ── */
     [data-testid="stAppViewContainer"] {
-        background: linear-gradient(135deg, #0a0814 0%, #120f24 50%, #0d1117 100%);
+        background: linear-gradient(135deg, #0a0814 0%, #120f24 55%, #0d1117 100%);
         min-height: 100vh;
     }
     [data-testid="stHeader"] { background: transparent !important; }
-
-    /* ── Sidebar ── */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f0c24 0%, #13102a 100%) !important;
-        border-right: 1px solid rgba(139,92,246,0.25) !important;
+        background: linear-gradient(180deg, #0f0c24, #13102a) !important;
+        border-right: 1px solid rgba(139,92,246,0.22) !important;
     }
-    [data-testid="stSidebar"] * { color: #d1d5db !important; }
-
-    /* ── Hero title ── */
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span { color: #c4b5fd !important; }
     .hero-title {
-        font-size: 2.8rem;
-        font-weight: 900;
-        background: linear-gradient(120deg, #8B5CF6, #a78bfa, #f0abfc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0.2rem;
+        font-size:2.75rem; font-weight:900;
+        background:linear-gradient(120deg,#8B5CF6 20%,#a78bfa 60%,#f0abfc 100%);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        text-align:center; line-height:1.15; margin-bottom:.25rem;
     }
-    .hero-sub {
-        text-align: center;
-        color: #6b7280;
-        font-size: 1rem;
-        margin-bottom: 1.2rem;
-    }
-
-    /* ── Divider ── */
+    .hero-sub { text-align:center; color:#6b7280; font-size:1rem; }
     .glowline {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(139,92,246,.55), transparent);
-        margin: 1.2rem 0;
+        height:1px;
+        background:linear-gradient(90deg,transparent,rgba(139,92,246,.5),transparent);
+        margin:1.1rem 0;
     }
-
-    /* ── Model header badges ── */
     .badge-gemini {
-        display: inline-block;
-        background: linear-gradient(135deg, #4285F4, #0d6efd);
-        color: #fff !important;
-        padding: 0.3rem 1rem;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        letter-spacing: .03em;
-        margin-bottom: .6rem;
+        display:inline-block; background:linear-gradient(135deg,#4285F4,#1a56db);
+        color:#fff !important; padding:.28rem 1rem; border-radius:20px;
+        font-weight:700; font-size:.92rem; margin-bottom:.55rem;
     }
     .badge-llama4 {
-        display: inline-block;
-        background: linear-gradient(135deg, #22D3EE, #0891b2);
-        color: #fff !important;
-        padding: 0.3rem 1rem;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        letter-spacing: .03em;
-        margin-bottom: .6rem;
+        display:inline-block; background:linear-gradient(135deg,#22D3EE,#0891b2);
+        color:#fff !important; padding:.28rem 1rem; border-radius:20px;
+        font-weight:700; font-size:.92rem; margin-bottom:.55rem;
     }
-
-    /* ── Response boxes ── */
     .resp-box-gemini {
-        background: rgba(66,133,244,0.06);
-        border: 1px solid rgba(66,133,244,0.22);
-        border-radius: 12px;
-        padding: 1.1rem 1.3rem;
-        min-height: 180px;
-        font-size: 0.93rem;
-        line-height: 1.7;
-        color: #e2e8f0;
-        white-space: pre-wrap;
-        word-wrap: break-word;
+        background:rgba(66,133,244,.06); border:1px solid rgba(66,133,244,.22);
+        border-radius:12px; padding:1.1rem 1.25rem; min-height:200px;
+        font-size:.92rem; line-height:1.75; color:#e2e8f0;
+        white-space:pre-wrap; word-wrap:break-word;
     }
     .resp-box-llama4 {
-        background: rgba(34,211,238,0.06);
-        border: 1px solid rgba(34,211,238,0.22);
-        border-radius: 12px;
-        padding: 1.1rem 1.3rem;
-        min-height: 180px;
-        font-size: 0.93rem;
-        line-height: 1.7;
-        color: #e2e8f0;
-        white-space: pre-wrap;
-        word-wrap: break-word;
+        background:rgba(34,211,238,.06); border:1px solid rgba(34,211,238,.22);
+        border-radius:12px; padding:1.1rem 1.25rem; min-height:200px;
+        font-size:.92rem; line-height:1.75; color:#e2e8f0;
+        white-space:pre-wrap; word-wrap:break-word;
     }
     .resp-box-placeholder {
-        background: rgba(75,85,99,0.12);
-        border: 1px dashed rgba(107,114,128,0.35);
-        border-radius: 12px;
-        padding: 1.1rem 1.3rem;
-        min-height: 180px;
-        color: #4b5563;
-        font-style: italic;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
+        background:rgba(75,85,99,.10); border:1px dashed rgba(107,114,128,.3);
+        border-radius:12px; padding:1.1rem 1.25rem; min-height:200px;
+        color:#4b5563; font-style:italic;
+        display:flex; align-items:center; justify-content:center; font-size:.88rem;
     }
-
-    /* ── Stats caption ── */
-    .stats-bar {
-        display: flex;
-        gap: 1.2rem;
-        margin-top: 0.6rem;
-        font-size: 0.78rem;
-        color: #6b7280;
-        flex-wrap: wrap;
-    }
+    .stats-bar { display:flex; gap:1rem; margin-top:.55rem; flex-wrap:wrap; }
     .stat-chip {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.09);
-        border-radius: 8px;
-        padding: 0.15rem 0.6rem;
+        background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+        border-radius:8px; padding:.13rem .55rem; font-size:.76rem; color:#6b7280;
     }
-
-    /* ── Metric cards ── */
-    [data-testid="stMetric"] {
-        background: rgba(139,92,246,0.08);
-        border: 1px solid rgba(139,92,246,0.2);
-        border-radius: 10px;
-        padding: 0.7rem 1rem;
+    .stButton > button {
+        background:linear-gradient(135deg,#8B5CF6,#6d28d9) !important;
+        color:#fff !important; font-weight:800 !important; font-size:1rem !important;
+        border:none !important; border-radius:10px !important; padding:.6rem 2rem !important;
+        box-shadow:0 4px 18px rgba(139,92,246,.38) !important;
+        transition:transform .2s,box-shadow .2s !important; width:100% !important;
     }
-    [data-testid="stMetricLabel"] { color: #9ca3af !important; font-size:.8rem !important; }
-    [data-testid="stMetricValue"] { color: #e2e8f0 !important; }
-    [data-testid="stMetricDelta"] { font-size:.78rem !important; }
-
-    /* ── Template buttons ── */
-    div[data-testid="column"] .stButton > button {
-        background: rgba(139,92,246,0.12) !important;
-        border: 1px solid rgba(139,92,246,0.3) !important;
-        color: #a78bfa !important;
-        border-radius: 8px !important;
-        font-size: 0.82rem !important;
-        padding: 0.4rem 0.7rem !important;
-        font-weight: 600 !important;
-        transition: all .2s !important;
-        width: 100% !important;
+    .stButton > button:hover {
+        transform:translateY(-2px) !important;
+        box-shadow:0 8px 26px rgba(139,92,246,.55) !important;
     }
-    div[data-testid="column"] .stButton > button:hover {
-        background: rgba(139,92,246,0.28) !important;
-        border-color: rgba(139,92,246,0.6) !important;
-        transform: translateY(-1px) !important;
-    }
-
-    /* ── Compare button ── */
-    .compare-btn > button {
-        background: linear-gradient(135deg,#8B5CF6,#6d28d9) !important;
-        color: #fff !important;
-        font-weight: 800 !important;
-        font-size: 1.05rem !important;
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 0.65rem 2.5rem !important;
-        box-shadow: 0 4px 20px rgba(139,92,246,0.4) !important;
-        transition: all .25s !important;
-        width: 100% !important;
-    }
-    .compare-btn > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 28px rgba(139,92,246,0.55) !important;
-    }
-
-    /* ── Sidebar toggle button ── */
     [data-testid="stSidebar"] .stButton > button {
-        background: rgba(139,92,246,0.15) !important;
-        border: 1px solid rgba(139,92,246,0.35) !important;
-        color: #a78bfa !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        width: 100% !important;
+        background:rgba(139,92,246,.12) !important;
+        border:1px solid rgba(139,92,246,.3) !important;
+        color:#a78bfa !important; font-size:.84rem !important;
+        font-weight:600 !important; padding:.32rem .9rem !important; box-shadow:none !important;
     }
-
-    /* ── History box ── */
-    .history-entry {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 10px;
-        padding: 0.9rem 1.1rem;
-        margin-bottom: 0.8rem;
-        font-size: 0.85rem;
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background:rgba(139,92,246,.24) !important; transform:none !important; box-shadow:none !important;
     }
-    .history-prompt {
-        color: #a78bfa;
-        font-weight: 600;
-        margin-bottom: 0.4rem;
+    .history-card {
+        background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+        border-radius:10px; padding:.85rem 1.1rem; margin-bottom:.7rem;
     }
-    .history-meta {
-        color: #4b5563;
-        font-size: 0.75rem;
-    }
-
-    /* ── Expander ── */
+    .history-q { color:#a78bfa; font-weight:600; font-size:.88rem; margin-bottom:.3rem; }
+    .history-meta { color:#4b5563; font-size:.75rem; }
     [data-testid="stExpander"] summary {
-        color: #9ca3af !important;
-        font-weight: 600 !important;
+        color:#9ca3af !important; font-weight:600 !important; font-size:.9rem !important;
     }
-
-    /* ── Hide branding ── */
-    #MainMenu, footer { visibility: hidden; }
-    </style>
-    """, unsafe_allow_html=True)
+    #MainMenu, footer { visibility:hidden; }
+    </style>""", unsafe_allow_html=True)
 
 
-# ── Session state ─────────────────────────────────────────────────────────────
 def init_state():
-    defaults = {
-        "history": [],
-        "last_prompt": "",
-        "last_system": "",
-        "gemini_result": None,
-        "llama4_result": None,
-    }
-    for k, v in defaults.items():
+    for k, v in {
+        "history":[], "gemini_result":None, "llama4_result":None,
+        "last_prompt":"", "last_system":"",
+    }.items():
         if k not in st.session_state:
             st.session_state[k] = v
 
 
-# ── Prompt templates ──────────────────────────────────────────────────────────
-TEMPLATES = {
-    "💻 Code Explain":    "Explain the following code step by step, covering what it does, how it works, and any potential improvements:\n\n",
-    "✍️ Writing Help":    "Help me improve the following text for clarity, tone, and impact:\n\n",
-    "📊 Analysis":        "Provide a thorough analysis of the following topic, including key factors, implications, and evidence:\n\n",
-    "🧠 Brainstorm":      "Generate 10 creative and diverse ideas related to the following topic, with a brief rationale for each:\n\n",
-    "🔬 Research":        "Summarise the current state of research on the following topic, covering key findings, debates, and open questions:\n\n",
-}
-
-
-# ── API call: Gemini ──────────────────────────────────────────────────────────
-def call_gemini(api_key: str, meta_prompt: str) -> str:
+def call_gemini(prompt, system_prompt, api_key):
     try:
         from google import genai
         from google.genai import types
-
         client = genai.Client(api_key=api_key)
+        full_prompt = f"{system_prompt.strip()}\n\n{prompt}" if system_prompt.strip() else prompt
+        t0 = time.time()
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
-            contents=meta_prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.3,
-                max_output_tokens=2048,
-            ),
+            model="gemini-2.0-flash",
+            contents=full_prompt,
+            config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=1024),
         )
-        return response.text
+        elapsed = round(time.time() - t0, 2)
+        text = response.text or ""
+        try:
+            tin  = response.usage_metadata.prompt_token_count
+            tout = response.usage_metadata.candidates_token_count
+        except Exception:
+            tin  = len(full_prompt.split())
+            tout = len(text.split())
+        return {"text":text,"tokens_in":tin,"tokens_out":tout,"elapsed":elapsed,"error":None}
+    except ImportError:
+        return {"text":"","tokens_in":0,"tokens_out":0,"elapsed":0,
+                "error":"Package missing — run: pip install google-genai"}
     except Exception as e:
-        raise RuntimeError(str(e))
+        return {"text":"","tokens_in":0,"tokens_out":0,"elapsed":0,"error":str(e)}
 
 
-# ── API call: Llama 4 Scout via Groq ─────────────────────────────────────────
-def call_llama4(prompt: str, system_prompt: str, api_key: str, temperature: float, max_tokens: int) -> dict:
-    """
-    Calls Llama 4 Scout 17B via Groq. Returns same shape as call_gemini().
-    """
+def call_llama4(prompt, system_prompt, api_key):
     try:
         from groq import Groq
-
         client = Groq(api_key=api_key)
-
         messages = []
         if system_prompt.strip():
-            messages.append({"role": "system", "content": system_prompt.strip()})
-        messages.append({"role": "user", "content": prompt})
-
+            messages.append({"role":"system","content":system_prompt.strip()})
+        messages.append({"role":"user","content":prompt})
         t0 = time.time()
         response = client.chat.completions.create(
             model="meta-llama/llama-4-scout-17b-16e-instruct",
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=messages,
+            max_tokens=1024, temperature=0.7, messages=messages,
         )
-        elapsed = round(time.time() - t0, 2)
-
-        text      = response.choices[0].message.content or ""
+        elapsed    = round(time.time() - t0, 2)
+        text       = response.choices[0].message.content or ""
         tokens_in  = response.usage.prompt_tokens
         tokens_out = response.usage.completion_tokens
-
-        return {"text": text, "tokens_in": tokens_in, "tokens_out": tokens_out,
-                "elapsed": elapsed, "error": None}
-
+        return {"text":text,"tokens_in":tokens_in,"tokens_out":tokens_out,"elapsed":elapsed,"error":None}
     except ImportError:
-        return {"text": "", "tokens_in": 0, "tokens_out": 0, "elapsed": 0,
-                "error": "Package missing — run: pip install groq"}
+        return {"text":"","tokens_in":0,"tokens_out":0,"elapsed":0,
+                "error":"Package missing — run: pip install groq"}
     except Exception as e:
-        return {"text": "", "tokens_in": 0, "tokens_out": 0, "elapsed": 0,
-                "error": str(e)}
+        return {"text":"","tokens_in":0,"tokens_out":0,"elapsed":0,"error":str(e)}
 
 
-# ── Render one response column ────────────────────────────────────────────────
-def render_response(result: dict | None, model_name: str, badge_class: str, box_class: str, placeholder_msg: str):
-    """Render badge, response box, and stats for one model."""
-    st.markdown(f'<div class="{badge_class}">{model_name}</div>', unsafe_allow_html=True)
-
+def render_column(result, badge_html, box_class, placeholder):
+    st.markdown(badge_html, unsafe_allow_html=True)
     if result is None:
-        # No key provided
-        st.markdown(
-            f'<div class="resp-box-placeholder">{placeholder_msg}</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown(f'<div class="resp-box-placeholder">{placeholder}</div>', unsafe_allow_html=True)
         return
-
     if result["error"]:
         st.error(f"⚠️ {result['error']}")
         return
-
-    # Response text
+    st.markdown(f'<div class="{box_class}">{result["text"]}</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="{box_class}">{result["text"]}</div>',
-        unsafe_allow_html=True,
-    )
-
-    # Stats chips
-    words = len(result["text"].split())
-    st.markdown(
-        f"""
-        <div class="stats-bar">
-            <span class="stat-chip">⏱ {result['elapsed']}s</span>
-            <span class="stat-chip">📥 {result['tokens_in']} in</span>
-            <span class="stat-chip">📤 {result['tokens_out']} out</span>
-            <span class="stat-chip">🔤 {words} words</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        f'<div class="stats-bar">'
+        f'<span class="stat-chip">⏱ {result["elapsed"]}s</span>'
+        f'<span class="stat-chip">📥 {result["tokens_in"]} in</span>'
+        f'<span class="stat-chip">📤 {result["tokens_out"]} out</span>'
+        f'</div>', unsafe_allow_html=True)
 
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-def render_sidebar() -> tuple[str, str, float, int]:
+def render_sidebar():
     with st.sidebar:
-        st.markdown("## ⚙️ BurnSmartAI")
+        if st.button("☰  Hide Sidebar", use_container_width=True):
+            st.markdown("""<script>
+            const ctrl = window.parent.document.querySelector('[data-testid="collapsedControl"]');
+            if (ctrl) ctrl.click();
+            </script>""", unsafe_allow_html=True)
+
         st.markdown("---")
-
-        # ── API Keys ──────────────────────────────────────────────────────────
         st.markdown("### 🔑 API Keys")
-        gemini_key = st.text_input(
-            "Gemini API Key",
-            type="password",
-            placeholder="AIza...",
-            help="Free key → https://aistudio.google.com/app/apikey",
-        )
-        groq_key = st.text_input(
-            "Groq API Key",
-            type="password",
-            placeholder="gsk_...",
-            help="Free key → https://console.groq.com/keys",
-        )
-
-        # Key status
+        gemini_key = st.text_input("Gemini API Key", type="password", placeholder="AIza…",
+                                   help="Free → https://aistudio.google.com/app/apikey")
+        groq_key   = st.text_input("Groq API Key",   type="password", placeholder="gsk_…",
+                                   help="Free → https://console.groq.com/keys")
         c1, c2 = st.columns(2)
         c1.success("✅ Gemini") if gemini_key else c1.warning("⚠️ Gemini")
         c2.success("✅ Groq")   if groq_key   else c2.warning("⚠️ Groq")
-
         st.markdown("---")
-
-        # ── Generation controls ───────────────────────────────────────────────
-        st.markdown("### 🎛️ Generation")
-        temperature = st.slider(
-            "Temperature",
-            min_value=0.0, max_value=1.0,
-            value=0.7, step=0.05,
-            help="Higher = more creative. Lower = more focused."
-        )
-        max_tokens = st.slider(
-            "Max Tokens",
-            min_value=100, max_value=4000,
-            value=1024, step=100,
-            help="Maximum tokens in the response."
-        )
-
-        st.markdown("---")
-
-        # ── Model info ────────────────────────────────────────────────────────
         st.markdown("### 🤖 Models")
-        st.markdown("""
-| Model | Provider |
-|---|---|
-| Gemini 2.0 Flash | Google |
-| Llama 4 Scout 17B | Groq |
-""")
-
+        st.markdown("| | Model |\n|---|---|\n| 🔵 | Gemini 2.0 Flash |\n| 🩵 | Llama 4 Scout 17B |")
         st.markdown("---")
         st.caption("BurnSmartAI · Dual-AI Comparison")
+    return gemini_key or "", groq_key or ""
 
-    return gemini_key or "", groq_key or "", temperature, max_tokens
 
-
-# ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     inject_css()
     init_state()
+    gemini_key, groq_key = render_sidebar()
 
-    gemini_key, groq_key, temperature, max_tokens = render_sidebar()
-
-    # ── Hero ──────────────────────────────────────────────────────────────────
     st.markdown('<div class="hero-title">🔍 BurnSmartAI</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="hero-sub">Side-by-side AI comparison · '
-        '<span style="color:#4285F4;font-weight:600;">Gemini 2.0 Flash</span> &nbsp;×&nbsp; '
-        '<span style="color:#22D3EE;font-weight:600;">Llama 4 Scout 17B</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+        '<div class="hero-sub">Side-by-side AI comparison &nbsp;·&nbsp; '
+        '<span style="color:#4285F4;font-weight:600;">Gemini 2.0 Flash</span>'
+        ' &nbsp;×&nbsp; '
+        '<span style="color:#22D3EE;font-weight:600;">Llama 4 Scout 17B</span></div>',
+        unsafe_allow_html=True)
     st.markdown('<div class="glowline"></div>', unsafe_allow_html=True)
 
-    # ── Prompt templates ──────────────────────────────────────────────────────
-    with st.expander("⚡ Prompt Templates", expanded=False):
-        st.caption("Click a template to pre-fill the prompt box.")
-        tcols = st.columns(len(TEMPLATES))
-        for i, (label, starter) in enumerate(TEMPLATES.items()):
-            if tcols[i].button(label, key=f"tpl_{i}"):
-                st.session_state["last_prompt"] = starter
-
-    # ── System prompt ─────────────────────────────────────────────────────────
-    with st.expander("🧩 System Prompt (optional)", expanded=False):
+    with st.expander("🧩 System Prompt  *(optional)*", expanded=False):
         system_prompt = st.text_area(
-            "System instructions sent to both models",
-            value=st.session_state.get("last_system", ""),
-            placeholder="e.g. You are a concise technical assistant. Always use bullet points.",
-            height=90,
-            key="system_input",
-            label_visibility="collapsed",
-        )
+            "Instructions sent to both models",
+            value=st.session_state.get("last_system",""),
+            placeholder="e.g. You are a concise technical assistant. Use bullet points.",
+            height=85, label_visibility="collapsed")
         st.session_state["last_system"] = system_prompt
-    else_system = st.session_state.get("last_system", "")
+    system_prompt = st.session_state.get("last_system","")
 
-    # ── Prompt input ──────────────────────────────────────────────────────────
     prompt = st.text_area(
         "💬 Your Prompt",
-        value=st.session_state.get("last_prompt", ""),
-        placeholder="Ask anything — both models will respond simultaneously…",
-        height=130,
-        key="prompt_input",
-    )
+        value=st.session_state.get("last_prompt",""),
+        placeholder="Ask anything — both models respond simultaneously…",
+        height=130)
 
-    # ── Compare button ────────────────────────────────────────────────────────
-    btn_col, _ = st.columns([2, 5])
+    btn_col, _ = st.columns([2,5])
     with btn_col:
-        st.markdown('<div class="compare-btn">', unsafe_allow_html=True)
         compare = st.button("⚡ Compare Models", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
     st.markdown('<div class="glowline"></div>', unsafe_allow_html=True)
 
-    # ── Run comparison ────────────────────────────────────────────────────────
     if compare:
         if not prompt.strip():
-            st.error("⚠️ Please enter a prompt before comparing.")
+            st.error("⚠️ Please enter a prompt first.")
             st.stop()
-
         st.session_state["last_prompt"] = prompt
-
-        gemini_res = llama4_res = None
         prog = st.progress(0, text="Sending to models…")
+        gemini_res = llama4_res = None
 
-        # ── Gemini ────────────────────────────────────────────────────────────
         if gemini_key:
-            prog.progress(20, text="⏳ Calling Gemini…")
+            prog.progress(15, text="⏳ Calling Gemini…")
             with st.spinner("Gemini thinking…"):
-                gemini_res = call_gemini(prompt, else_system, gemini_key, temperature, max_tokens)
-        prog.progress(55, text="⏳ Calling Llama 4 Scout…")
+                gemini_res = call_gemini(prompt, system_prompt, gemini_key)
 
-        # ── Llama 4 Scout ─────────────────────────────────────────────────────
+        prog.progress(55, text="⏳ Calling Llama 4 Scout…")
         if groq_key:
             with st.spinner("Llama thinking…"):
-                llama4_res = call_llama4(prompt, else_system, groq_key, temperature, max_tokens)
+                llama4_res = call_llama4(prompt, system_prompt, groq_key)
+
         prog.progress(100, text="✅ Done!")
         time.sleep(0.3)
         prog.empty()
 
         st.session_state["gemini_result"] = gemini_res
         st.session_state["llama4_result"] = llama4_res
-
-        # Save to history
         st.session_state["history"].insert(0, {
-            "ts":      datetime.now().strftime("%H:%M:%S"),
-            "prompt":  prompt[:120] + ("…" if len(prompt) > 120 else ""),
-            "gemini":  gemini_res,
-            "llama4":  llama4_res,
+            "ts":     datetime.now().strftime("%H:%M:%S"),
+            "prompt": prompt[:110] + ("…" if len(prompt)>110 else ""),
+            "gemini": gemini_res, "llama4": llama4_res,
         })
 
-    # ── Results columns ───────────────────────────────────────────────────────
     g_res = st.session_state.get("gemini_result")
     l_res = st.session_state.get("llama4_result")
 
-    if g_res is not None or l_res is not None or not compare:
+    if g_res is not None or l_res is not None:
         col_g, col_l = st.columns(2, gap="large")
-
         with col_g:
-            render_response(
-                result=g_res,
-                model_name="🔵 Gemini 2.0 Flash",
-                badge_class="badge-gemini",
-                box_class="resp-box-gemini",
-                placeholder_msg="Add your Gemini API key in the sidebar to enable this model.",
-            )
-
+            render_column(g_res,
+                '<div class="badge-gemini">🔵 Gemini 2.0 Flash</div>',
+                "resp-box-gemini",
+                "Add your Gemini API key in the sidebar to enable.")
         with col_l:
-            render_response(
-                result=l_res,
-                model_name="🩵 Llama 4 Scout 17B",
-                badge_class="badge-llama4",
-                box_class="resp-box-llama4",
-                placeholder_msg="Add your Groq API key in the sidebar to enable this model.",
-            )
+            render_column(l_res,
+                '<div class="badge-llama4">🩵 Llama 4 Scout 17B</div>',
+                "resp-box-llama4",
+                "Add your Groq API key in the sidebar to enable.")
 
-        # ── Comparison metrics ────────────────────────────────────────────────
-        if (g_res and not g_res["error"]) or (l_res and not l_res["error"]):
-            st.markdown('<div class="glowline"></div>', unsafe_allow_html=True)
-            st.markdown("#### 📊 Head-to-Head Metrics")
-
-            m1, m2, m3, m4, m5, m6 = st.columns(6)
-
-            # Speed
-            g_time = g_res["elapsed"] if g_res and not g_res["error"] else None
-            l_time = l_res["elapsed"] if l_res and not l_res["error"] else None
-            m1.metric("⏱ Gemini Time",   f"{g_time}s"  if g_time  else "—")
-            m2.metric("⏱ Llama Time",    f"{l_time}s"  if l_time  else "—")
-
-            # Output tokens
-            g_tok = g_res["tokens_out"] if g_res and not g_res["error"] else None
-            l_tok = l_res["tokens_out"] if l_res and not l_res["error"] else None
-            m3.metric("📤 Gemini Tokens", g_tok if g_tok else "—")
-            m4.metric("📤 Llama Tokens",  l_tok if l_tok else "—")
-
-            # Word count
-            g_wc = len(g_res["text"].split()) if g_res and not g_res["error"] else None
-            l_wc = len(l_res["text"].split()) if l_res and not l_res["error"] else None
-            m5.metric("🔤 Gemini Words",  g_wc if g_wc else "—")
-            m6.metric("🔤 Llama Words",   l_wc if l_wc else "—")
-
-            # Speed winner callout
-            if g_time and l_time:
-                if g_time < l_time:
-                    st.info(f"⚡ **Gemini** was faster by **{round(l_time - g_time, 2)}s**")
-                elif l_time < g_time:
-                    st.info(f"⚡ **Llama 4 Scout** was faster by **{round(g_time - l_time, 2)}s**")
-                else:
-                    st.info("🤝 Both models responded in the same time.")
-
-    # ── Session history ───────────────────────────────────────────────────────
     if st.session_state["history"]:
         st.markdown('<div class="glowline"></div>', unsafe_allow_html=True)
-        with st.expander(f"🕓 Session History ({len(st.session_state['history'])} runs)", expanded=False):
-            for i, entry in enumerate(st.session_state["history"]):
-                g = entry.get("gemini")
-                l = entry.get("llama4")
-                g_words = len(g["text"].split()) if g and not g["error"] else "err"
-                l_words = len(l["text"].split()) if l and not l["error"] else "err"
-                g_time  = f"{g['elapsed']}s" if g and not g["error"] else "—"
-                l_time  = f"{l['elapsed']}s" if l and not l["error"] else "—"
-
+        with st.expander(f"🕓 Session History  ({len(st.session_state['history'])} runs)", expanded=False):
+            for idx, entry in enumerate(st.session_state["history"]):
+                g = entry.get("gemini"); l = entry.get("llama4")
+                g_time = f"{g['elapsed']}s" if g and not g["error"] else "—"
+                l_time = f"{l['elapsed']}s" if l and not l["error"] else "—"
+                g_tok  = g["tokens_out"]    if g and not g["error"] else "—"
+                l_tok  = l["tokens_out"]    if l and not l["error"] else "—"
+                num    = len(st.session_state["history"]) - idx
                 st.markdown(
-                    f"""
-                    <div class="history-entry">
-                        <div class="history-prompt">#{len(st.session_state['history'])-i} · {entry['ts']} — {entry['prompt']}</div>
-                        <div class="history-meta">
-                            🔵 Gemini: {g_time} · {g_words} words &nbsp;|&nbsp;
-                            🩵 Llama 4: {l_time} · {l_words} words
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                    f'<div class="history-card">'
+                    f'<div class="history-q">#{num} &nbsp;·&nbsp; {entry["ts"]} &nbsp;—&nbsp; {entry["prompt"]}</div>'
+                    f'<div class="history-meta">🔵 Gemini: {g_time} &nbsp;·&nbsp; {g_tok} tokens out'
+                    f'&nbsp;&nbsp;|&nbsp;&nbsp;🩵 Llama 4: {l_time} &nbsp;·&nbsp; {l_tok} tokens out</div>'
+                    f'</div>', unsafe_allow_html=True)
             if st.button("🗑️ Clear History"):
                 st.session_state["history"] = []
                 st.rerun()
 
-    # ── Footer ────────────────────────────────────────────────────────────────
     st.markdown('<div class="glowline"></div>', unsafe_allow_html=True)
     st.markdown(
-        '<div style="text-align:center;color:#374151;font-size:.8rem;padding:.5rem 0;">'
-        '🔍 BurnSmartAI · Gemini 2.0 Flash × Llama 4 Scout 17B · Dual-AI Comparison Engine'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+        '<div style="text-align:center;color:#374151;font-size:.78rem;padding:.4rem 0;">'
+        '🔍 BurnSmartAI &nbsp;·&nbsp; Gemini 2.0 Flash × Llama 4 Scout 17B</div>',
+        unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
