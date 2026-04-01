@@ -6,6 +6,7 @@ Gemini 2.0 Flash  x  Llama 4 Scout 17B (Groq)
 import streamlit as st
 import time
 from datetime import datetime
+from typing import Optional, Tuple
 
 st.set_page_config(
     page_title="BurnSmartAI",
