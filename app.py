@@ -251,49 +251,23 @@ TEMPLATES = {
 
 
 # ── API call: Gemini ──────────────────────────────────────────────────────────
-def call_gemini(prompt: str, system_prompt: str, api_key: str, temperature: float, max_tokens: int) -> dict:
-    """
-    Calls Gemini 2.0 Flash. Returns dict with keys:
-    text, tokens_in, tokens_out, elapsed, error
-    """
+def call_gemini(api_key: str, meta_prompt: str) -> str:
     try:
         from google import genai
         from google.genai import types
 
         client = genai.Client(api_key=api_key)
-
-        # Merge system prompt if provided
-        full_prompt = f"{system_prompt.strip()}\n\n{prompt}" if system_prompt.strip() else prompt
-
-        t0 = time.time()
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=full_prompt,
+            model="gemini-3-flash-preview",
+            contents=meta_prompt,
             config=types.GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens,
+                temperature=0.3,
+                max_output_tokens=2048,
             ),
         )
-        elapsed = round(time.time() - t0, 2)
-
-        text = response.text or ""
-        # Token counts from usage_metadata (if available)
-        try:
-            tokens_in  = response.usage_metadata.prompt_token_count
-            tokens_out = response.usage_metadata.candidates_token_count
-        except Exception:
-            tokens_in  = len(full_prompt.split())
-            tokens_out = len(text.split())
-
-        return {"text": text, "tokens_in": tokens_in, "tokens_out": tokens_out,
-                "elapsed": elapsed, "error": None}
-
-    except ImportError:
-        return {"text": "", "tokens_in": 0, "tokens_out": 0, "elapsed": 0,
-                "error": "Package missing — run: pip install google-genai"}
+        return response.text
     except Exception as e:
-        return {"text": "", "tokens_in": 0, "tokens_out": 0, "elapsed": 0,
-                "error": str(e)}
+        raise RuntimeError(str(e))
 
 
 # ── API call: Llama 4 Scout via Groq ─────────────────────────────────────────
